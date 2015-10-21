@@ -3,6 +3,7 @@ from django_countries.fields import CountryField
 from django_languages.fields import LanguageField
 from localflavor.us.models import USStateField, USSocialSecurityNumberField, PhoneNumberField
 from django.utils import timezone
+from audit_log.models.managers import AuditLog
 
 GENDER_CHOICES = (('Female', 'Female'), ('Male', 'Male'), ('Undifferentiated', 'Undifferentiated'), ('Blank', ''))
 
@@ -96,25 +97,27 @@ class Personal_Information(models.Model):
     def __unicode__(self):
         return self.first_name+' '+self.last_name
 
-# class Guarantor_Information(models.Model):
-#     patient = models.ForeignKey(Personal_Information)
-#     relation = models.CharField(choices=RELATION_CHOICES,max_length=128)
-#     #If relation is self, auto fill rest of the details
-#     first_name = models.CharField(max_length=128, default='')
-#     middle_name = models.CharField(max_length=128, default='', null=True, blank=True)
-#     last_name = models.CharField(max_length=128, default='')
-#     dob = models.DateField()
-#     sex = models.CharField(choices=GENDER_CHOICES, max_length=32, default='Blank')
-#     race = models.CharField(choices=RACE_CHOICES, max_length=64, default='Blank')
-#     ethnicity = models.CharField(choices=ETHNICITY_CHOICES, max_length=64, default='Blank')
-#     language = LanguageField(default='en')
-#     country = CountryField(blank_label='',default='US')
-#     ssn = USSocialSecurityNumberField(null=True, blank=True, help_text='XXX-XX-XXXX')
-#     address = models.CharField(max_length=128,default='')
-#     city = models.CharField(max_length=128,default='')   
-#     state = USStateField(default='')  
-#     zip = models.IntegerField(default='')
-#     home_phone = PhoneNumberField(help_text='XXX-XXX-XXXX')
+    audit_log = AuditLog()
+    
+class Guarantor_Information(models.Model):
+    patient = models.ForeignKey(Personal_Information)
+    relation = models.CharField(choices=RELATION_CHOICES,max_length=128)
+    #If relation is self, auto fill rest of the details
+    first_name = models.CharField(max_length=128, default='')
+    middle_name = models.CharField(max_length=128, default='', null=True, blank=True)
+    last_name = models.CharField(max_length=128, default='')
+    dob = models.DateField()
+    sex = models.CharField(choices=GENDER_CHOICES, max_length=32, default='Blank')
+    race = models.CharField(choices=RACE_CHOICES, max_length=64, default='Blank')
+    ethnicity = models.CharField(choices=ETHNICITY_CHOICES, max_length=64, default='Blank')
+    language = LanguageField(default='en')
+    country = CountryField(blank_label='',default='US')
+    ssn = USSocialSecurityNumberField(null=True, blank=True, help_text='XXX-XX-XXXX')
+    address = models.CharField(max_length=128,default='')
+    city = models.CharField(max_length=128,default='')   
+    state = USStateField(default='')  
+    zip = models.IntegerField(default='')
+    home_phone = PhoneNumberField(help_text='XXX-XXX-XXXX')
     
 class Payer(models.Model):
     code = models.IntegerField(primary_key=True)
@@ -138,4 +141,13 @@ class Insurance_Information(models.Model):
     
     def __unicode__(self):
         return self.payer.name
-
+    
+    audit_log = AuditLog()
+    
+    def log_user(self):
+        for each in self.audit_log.all():
+            return each.action_user
+    
+    def log_type(self):
+        for each in self.audit_log.all():
+            return each.action_type       
