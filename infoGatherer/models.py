@@ -94,14 +94,15 @@ class Personal_Information(models.Model):
     account_status = models.CharField(choices=ACCOUNT_STATUS_CHOICES, max_length=64, default='Current')
     sign = models.CharField(choices=SIGN_CHOICES, max_length=3, default='Yes')
      
+    audit_log = AuditLog()
+    
     def __unicode__(self):
         return self.first_name+' '+self.last_name
 
-    audit_log = AuditLog()
-    
 class Guarantor_Information(models.Model):
     patient = models.ForeignKey(Personal_Information)
     relation = models.CharField(choices=RELATION_CHOICES,max_length=128)
+    
     #If relation is self, auto fill rest of the details
     first_name = models.CharField(max_length=128, default='')
     middle_name = models.CharField(max_length=128, default='', null=True, blank=True)
@@ -118,6 +119,9 @@ class Guarantor_Information(models.Model):
     state = USStateField(default='')  
     zip = models.IntegerField(default='')
     home_phone = PhoneNumberField(help_text='XXX-XXX-XXXX')
+    
+    def __unicode__(self):
+        return self.patient+' '+self.relation
     
 class Payer(models.Model):
     code = models.IntegerField(primary_key=True)
@@ -139,15 +143,7 @@ class Insurance_Information(models.Model):
     patient = models.ForeignKey(Personal_Information)
     insurance_id = models.CharField(max_length=32,default='')
     
-    def __unicode__(self):
-        return self.payer.name
-    
     audit_log = AuditLog()
     
-    def log_user(self):
-        for each in self.audit_log.all():
-            return each.action_user
-    
-    def log_type(self):
-        for each in self.audit_log.all():
-            return each.action_type       
+    def __unicode__(self):
+        return self.payer.name 
